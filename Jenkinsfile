@@ -1,12 +1,9 @@
 pipeline{
 
     environment{
-        IMAGE_NAME = "ajcwebsite"
-        IMAGE_TAG = "ajc-1.0"
-        STAGING = "fred-web-staging-env"
-        PRODUCTION = "fred-web-prod-env"
+        IMAGE_NAME = "website"
         USERNAME = "tiloups972"
-        CONTAINER_NAME = "ajcwebsite"
+        CONTAINER_NAME = "website"
         EC2_STAGING_HOST = "100.24.32.137"
         EC2_PRODUCTION_HOST = "54.210.162.182"
     }
@@ -19,7 +16,7 @@ pipeline{
            agent any
            steps {
                script{
-                   sh 'docker build -t $USERNAME/$IMAGE_NAME:$IMAGE_TAG .'
+                   sh 'docker build -t $USERNAME/$IMAGE_NAME:$BUILD_TAG .'
                }
            }
        }
@@ -31,7 +28,7 @@ pipeline{
                    sh '''
                        docker stop $CONTAINER_NAME || true
                        docker rm $CONTAINER_NAME || true
-                       docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$IMAGE_TAG
+                       docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$BUILD_TAG
                        sleep 5
                    '''
                }
@@ -58,10 +55,10 @@ pipeline{
                script{
                    sh '''
                        docker login -u $USERNAME -p $PASSWORD
-                       docker push $USERNAME/$IMAGE_NAME:$IMAGE_TAG
+                       docker push $USERNAME/$IMAGE_NAME:$BUILD_TAG
                        docker stop $CONTAINER_NAME || true
                        docker rm $CONTAINER_NAME || true
-                       docker rmi $USERNAME/$IMAGE_NAME:$IMAGE_TAG
+                       docker rmi $USERNAME/$IMAGE_NAME:$BUILD_TAG
                    '''
                }
            }
@@ -77,7 +74,7 @@ pipeline{
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         script{ 
                             sh'''
-                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_STAGING_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$IMAGE_TAG
+                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_STAGING_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$BUILD_TAG
                             '''
                         }
                     }
@@ -99,7 +96,7 @@ pipeline{
                             }
                             
                             sh'''
-                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_PRODUCTION_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$IMAGE_TAG
+                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_PRODUCTION_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$BUILD_TAG
                             '''
                         }
                     }
