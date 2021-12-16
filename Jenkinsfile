@@ -1,12 +1,12 @@
 pipeline{
 
     environment{
-        IMAGE_NAME = "website"
+        IMAGE_NAME = "ajcwebsite"
         IMAGE_TAG = "ajc-1.0"
         STAGING = "fred-web-staging-env"
         PRODUCTION = "fred-web-prod-env"
         USERNAME = "tiloups972"
-        CONTAINER_NAME = "website"
+        CONTAINER_NAME = "ajcwebsite"
         EC2_STAGING_HOST = "100.24.32.137"
         EC2_PRODUCTION_HOST = "54.210.162.182"
     }
@@ -66,46 +66,6 @@ pipeline{
                }
            }
        }
-
-        stage('Push image in staging and deploy it') {
-            when {
-                expression { GIT_BRANCH == 'origin/master' }
-            }
-            agent any
-            environment {
-                HEROKU_API_KEY = credentials('HerokuCredentials')
-            }  
-            steps {
-                script {
-                   sh '''
-                       heroku container:login
-                       heroku create $STAGING || echo "project already exist"
-                       heroku container:push -a $STAGING web
-                       heroku container:release -a $STAGING web
-                    '''
-                }
-            }
-        }
-
-        stage('Push image in Prod and deploy it') {
-            when {
-                expression { GIT_BRANCH == 'origin/master' }
-            }
-            agent any
-            environment {
-                HEROKU_API_KEY = credentials('HerokuCredentials')
-            }  
-            steps {
-                script {
-                   sh '''
-                       heroku container:login
-                       heroku create $PRODUCTION || echo "project already exist"
-                       heroku container:push -a $PRODUCTION web
-                       heroku container:release -a $PRODUCTION web
-                    '''
-                }
-            }
-        } 
 
         stage('Deploy app on EC2-cloud Straging') {
             agent any
