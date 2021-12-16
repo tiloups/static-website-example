@@ -1,13 +1,14 @@
 pipeline{
 
     environment{
-        IMAGE_NAME = "alpinehelloword"
-        IMAGE_TAG = "ajc-2.1"
-        STAGING = "fred-ajc-staging-env"
-        PRODUCTION = "fred-ajc-prod-env"
+        IMAGE_NAME = "website"
+        IMAGE_TAG = "ajc-1.0"
+        STAGING = "fred-web-staging-env"
+        PRODUCTION = "fred-web-prod-env"
         USERNAME = "tiloups972"
-        CONTAINER_NAME = "alpinehelloword"
-        EC2_PRODUCTION_HOST = "54.227.128.80"
+        CONTAINER_NAME = "website"
+        EC2_STAGING_HOST = "100.24.32.137"
+        EC2_PRODUCTION_HOST = "54.210.162.182"
     }
 
     agent none
@@ -106,6 +107,23 @@ pipeline{
             }
         } 
 
+        stage('Deploy app on EC2-cloud Straging') {
+            agent any
+            when{
+                expression{ GIT_BRANCH == 'origin/master'}
+            }
+            steps{
+                withCredentials([sshUserPrivateKey(credentialsId: "SSHCredentials", keyFileVariable: 'keyfile', usernameVariable: 'NUSER')]) {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        script{ 
+                            sh'''
+                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_STAGING_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$IMAGE_TAG
+                            '''
+                        }
+                    }
+                }
+            }
+        }
         stage('Deploy app on EC2-cloud Production') {
             agent any
             when{
@@ -115,9 +133,11 @@ pipeline{
                 withCredentials([sshUserPrivateKey(credentialsId: "SSHCredentials", keyFileVariable: 'keyfile', usernameVariable: 'NUSER')]) {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         script{ 
+
                             timeout(time: 15, unit: "MINUTES") {
                                 input message: 'Do you want to approve the deploy in production?', ok: 'Yes'
                             }
+                            
                             sh'''
                                 ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_PRODUCTION_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$IMAGE_TAG
                             '''
