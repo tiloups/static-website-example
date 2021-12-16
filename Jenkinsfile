@@ -5,7 +5,7 @@ pipeline{
         USERNAME = "tiloups972"
         CONTAINER_NAME = "website"
         EC2_STAGING_HOST = "100.24.32.137"
-        //EC2_PRODUCTION_HOST = "54.210.162.182"
+        EC2_PRODUCTION_HOST = "54.210.162.182"
     }
 
     agent none
@@ -28,13 +28,12 @@ pipeline{
                    sh '''
                        docker stop $CONTAINER_NAME || true
                        docker rm $CONTAINER_NAME || true
-                       docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$BUILD_TAG
+                       docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:80 $USERNAME/$IMAGE_NAME:$BUILD_TAG
                        sleep 5
                    '''
                }
            }
        }
-
        stage ('Test container') {
            agent any
            steps {
@@ -83,7 +82,7 @@ pipeline{
                 }
             }
         }
-       /* stage('Deploy app on EC2-cloud Production') {
+       stage('Deploy app on EC2-cloud Production') {
             agent any
             when{
                 expression{ GIT_BRANCH == 'origin/master'}
@@ -98,13 +97,15 @@ pipeline{
                             }
                             
                             sh'''
-                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_PRODUCTION_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:5000 $USERNAME/$IMAGE_NAME:$BUILD_TAG
+                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_STAGING_HOST} docker stop $CONTAINER_NAME
+                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_STAGING_HOST} docker rm $CONTAINER_NAME
+                                ssh -o StrictHostKeyChecking=no -i ${keyfile} ${NUSER}@${EC2_PRODUCTION_HOST} docker run --name $CONTAINER_NAME -d -e PORT=5000 -p 5000:80 $USERNAME/$IMAGE_NAME:$BUILD_TAG
                             '''
                         }
                     }
                 }
             }
-        } */
+        } 
     }
 
     post {
