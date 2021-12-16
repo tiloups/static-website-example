@@ -5,7 +5,7 @@ pipeline{
         USERNAME = "tiloups972"
         CONTAINER_NAME = "website"
         EC2_STAGING_HOST = "100.24.32.137"
-        EC2_PRODUCTION_HOST = "54.210.162.182"
+        EC2_PRODUCTION_HOST = "52.87.203.94"
     }
 
     agent none
@@ -39,7 +39,7 @@ pipeline{
            steps {
                script{
                    sh '''
-                       curl http://localhost:5000 | grep -iq "Dimension"
+                       curl http://localhost:5000 | grep -iq "Dimension Frédéric"
                    '''
                }
            }
