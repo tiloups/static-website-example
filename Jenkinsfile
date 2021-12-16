@@ -5,7 +5,7 @@ pipeline{
         USERNAME = "tiloups972"
         CONTAINER_NAME = "website"
         EC2_STAGING_HOST = "100.24.32.137"
-        EC2_PRODUCTION_HOST = "54.210.162.182"
+        //EC2_PRODUCTION_HOST = "54.210.162.182"
     }
 
     agent none
@@ -81,7 +81,7 @@ pipeline{
                 }
             }
         }
-        stage('Deploy app on EC2-cloud Production') {
+       /* stage('Deploy app on EC2-cloud Production') {
             agent any
             when{
                 expression{ GIT_BRANCH == 'origin/master'}
@@ -102,7 +102,7 @@ pipeline{
                     }
                 }
             }
-        } 
+        } */
     }
 
     post {
