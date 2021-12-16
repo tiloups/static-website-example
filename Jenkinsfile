@@ -39,7 +39,7 @@ pipeline{
            steps {
                script{
                    sh '''
-                       curl http://localhost:5000 | grep -iq "Dimension Frédéric"
+                       curl http://localhost:5000 | grep -iq "Dimension"
                    '''
                }
            }
